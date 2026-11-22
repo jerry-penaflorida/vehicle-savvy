@@ -1,7 +1,7 @@
 # Vehicle Savvy: Working Plan
 
 > **Status:** Planning · **Started:** 2026-11-21 · **Last updated:** 2026-11-21 (renamed to Vehicle Savvy)
-> **Current phase:** Phase 0 (Setup)
+> **Current phase:** B2 (VIN decode endpoint)
 
 A small **full-stack app** for looking up a vehicle by VIN and seeing its open safety recalls.
 - **Frontend:** React + **TypeScript** (Vite), hosted on **Vercel**
@@ -60,7 +60,7 @@ GET /api/vehicles/{vin}/summary
    ├─ 2. Call vPIC to decode VIN ───────────── down → 502/503
    │        └─ gives make, model, year
    ├─ 3. Call recalls API (needs step 2's result)
-   │        └─ down → still return vehicle info, "recalls": UNAVAILABLE (partial result)
+   │        └─ down → still return vehicle details, "recalls": UNAVAILABLE (partial result)
    └─ 4. Combine → clean JSON response
 ```
 **Key design point:** the recalls API is queried by **make/model/year, not VIN**, so the calls are **chained**: call 2 depends on call 1.
@@ -185,7 +185,7 @@ All settings that change between environments, where each one is **defined**, an
 | `APP_CACHE_MAX_SIZE` | `app.cache.max-size` | Max cached entries | `500` | default | **ConfigMap** | Run time |
 | `SPRING_PROFILES_ACTIVE` | `spring.profiles.active` | Active profile | *(none)* | `local` *(optional, for `application-local.yml`)* | *(not set)* | Startup |
 | `SERVER_PORT` | `server.port` | HTTP port | `8080` | default | default (matches `containerPort` / Service) | Startup |
-| `LOGGING_LEVEL_COM_JEREMIAH` | `logging.level.com.jeremiah` | App log level | `INFO` | `DEBUG` *(optional)* | default, or **ConfigMap** when debugging | Startup |
+| `LOGGING_LEVEL_COM_JERRYHUPDEV` | `logging.level.com.jerryhupdev` | App log level | `INFO` | `DEBUG` *(optional)* | default, or **ConfigMap** when debugging | Startup |
 | `JAVA_TOOL_OPTIONS` | *(JVM flag, not Spring)* | JVM memory sizing for containers | *(none)* | *(not set)* | **`deployment.yaml` `env`** → `-XX:MaxRAMPercentage=75` | JVM start |
 
 **Actuator settings** (not environment-specific; fixed in `application.yml`): expose `health` and `info`, enable `management.endpoint.health.probes.enabled=true` for `/actuator/health/liveness` and `/readiness`.
@@ -507,9 +507,10 @@ Each phase ends with something working. Check items off as I go.
 ### Backend track
 
 #### B1: Scaffold & run
-- [ ] Generate the project at start.spring.io (or VS Code: *Spring Initializr: Create a Gradle Project*) **into `backend/`**: Gradle-Kotlin · Java 21 · deps: **Spring Web, Validation, Actuator, DevTools, Cache**
-- [ ] `./gradlew bootRun` (or the Spring Boot Dashboard in VS Code) → app starts on `localhost:8080`
-- [ ] `GET /actuator/health` returns `{"status":"UP"}`
+- [x] Generate the project at start.spring.io (or VS Code: *Spring Initializr: Create a Gradle Project*) **into `backend/`**: Gradle-Kotlin · Java 21 · deps: **Spring Web, Validation, Actuator, DevTools, Cache**
+- [x] `./gradlew bootRun` (or the Spring Boot Dashboard in VS Code) → app starts on `localhost:8080`
+- [x] `GET /actuator/health` returns `{"status":"UP"}`
+- [ ] First backend commit pushed (`chore(api): scaffold Spring Boot backend`)
 - **Learn:** project layout, `@SpringBootApplication`, auto-configuration, starters
 - **Done when:** health check is UP locally.
 
@@ -544,7 +545,7 @@ Each phase ends with something working. Check items off as I go.
 
 #### B6: Resiliency
 - [ ] Connect and read **timeouts** on `RestClient` (e.g. 2s / 5s)
-- [ ] **Partial result:** if recalls fail, return vehicle info with `"recalls": {"status": "UNAVAILABLE"}`
+- [ ] **Partial result:** if recalls fail, return vehicle details with `"recalls": {"status": "UNAVAILABLE"}`
 - [ ] (Optional) **Retry** once on transient failures. Try Resilience4j `@Retry` / `@CircuitBreaker`
 - [ ] Log external call failures with useful context (VIN, endpoint, duration)
 - **Learn:** timeouts, retries, circuit breakers, graceful degradation
@@ -745,7 +746,7 @@ vehicle-savvy/
 │   ├── Dockerfile
 │   ├── openshift/                     (deployment, service, route, configmap YAML)
 │   └── src/
-│       ├── main/java/com/jeremiah/vehiclesavvy/
+│       ├── main/java/com/jerryhupdev/vehicle_savvy/
 │       │   ├── VehicleSavvyApplication.java
 │       │   ├── controller/VehicleController.java
 │       │   ├── service/VehicleService.java
@@ -754,7 +755,7 @@ vehicle-savvy/
 │       │   ├── exception/    (custom exceptions + GlobalExceptionHandler)
 │       │   └── config/       (RestClient bean, timeouts, cache, CORS config)
 │       ├── main/resources/application.yml
-│       └── test/java/com/jeremiah/vehiclesavvy/  (service, controller, client tests)
+│       └── test/java/com/jerryhupdev/vehicle_savvy/  (service, controller, client tests)
 └── frontend/
     ├── package.json
     ├── vite.config.ts                 (dev proxy /api → :8080)
@@ -821,8 +822,9 @@ vehicle-savvy/
 | Date | Phase | What I did | Next step |
 |---|---|---|---|
 | 2026-11-21 | Planning | Created the plan; added ADRs; accepted ADR-004 (OpenShift + GHCR + manual deploys) | Phase 0: install Temurin 21 + IntelliJ |
-| 2026-11-21 | Planning | Expanded to full stack: React + TypeScript frontend (ADR-005), API contract, frontend + delivery tracks; renamed project to `vehicle-info` | D10 = TanStack Query ✅, D11 = Tailwind ✅, D6 = public repo ✅. All decisions made. Next: Phase 0 |
+| 2026-11-21 | Planning | Expanded to full stack: React + TypeScript frontend (ADR-005), API contract, frontend + delivery tracks | D10 = TanStack Query ✅, D11 = Tailwind ✅, D6 = public repo ✅. All decisions made. Next: Phase 0 |
 | 2026-11-21 | Planning | Added prerequisites (7b) and configuration (6c); D6 = public repo; D13 = secrets deferred; **renamed app to Vehicle Savvy (`vehicle-savvy`)**; VS Code as main editor (IntelliJ optional) | Phase 0: Prerequisites A–C |
+| 2026-11-22 | B1 | Repo created and plan pushed; Spring Boot 4.2 backend scaffolded (Gradle Kotlin DSL, Java 21, YAML config; deps: Web MVC, Validation, Actuator, Cache, DevTools); `.gitignore` files added; health check UP locally | B2: VIN decode endpoint |
 
 ---
 

@@ -1,0 +1,14 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Local-only Spring config
+application-local.yml
+application-local.yaml
+
+# Spring Initializr help file
+HELP.md
+
+# Logs
+*.log

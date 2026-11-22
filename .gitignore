@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+
+# Environment files (keep the example)
+.env
+.env.*
+!.env.example
+
+# Editors (keep shared VS Code recommendations)
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json

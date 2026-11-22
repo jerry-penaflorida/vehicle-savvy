@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: vehicle-savvy
+app:
+  nhtsa:
+    vpic-base-url: ${NHTSA_VPIC_BASE_URL:https://vpic.nhtsa.dot.gov/api}
